@@ -4,7 +4,7 @@ import requests
 app = Flask(__name__)
 
 # URL da api de CRM
-CRM_API_URL = 'http://crm-api-container:3000/'
+CRM_API_URL = 'http://localhost:3000/'
 
 @app.route('/disparar-email', methods=['POST'])
 def disparar_email():
