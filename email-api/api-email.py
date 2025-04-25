@@ -17,7 +17,7 @@ enviados_collection = db['enviados']  # Coleção de e-mails enviados
 # Configuração do Redis
 redis_client = redis.StrictRedis(host='localhost', port=6379, db=0, decode_responses=True)
 
-@app.route('/cd', methods=['POST'])
+@app.route('/disparar-email', methods=['POST'])
 def disparar_email():
 	# Consumindo dados de clientes e campanhas com cache
 	clientes = redis_client.get('clientes')
