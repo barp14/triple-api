@@ -1,6 +1,8 @@
 from flask import Flask
 import requests
 from pymongo import MongoClient
+import redis
+import json
 
 app = Flask(__name__)
 
@@ -12,27 +14,42 @@ client = MongoClient('mongodb+srv://dbuser:DzbX3NP6MySS4ubt@cluster0.8x86g.mongo
 db = client['ecommerce']  # Nome do banco de dados
 enviados_collection = db['enviados']  # Nova coleção de "enviados"
 
+# Configuração do Redis
+redis_client = redis.StrictRedis(host='localhost', port=6379, db=0, decode_responses=True)
+
 @app.route('/disparar-email', methods=['POST'])
 def disparar_email():
-  # Consumindo dados de clientes e campanhas
-  clientes = requests.get(CRM_API_URL + 'clientes').json()
-  campanhas = requests.get(CRM_API_URL + 'campanhas').json()
+    # Consumindo dados de clientes e campanhas com cache
+    clientes = redis_client.get('clientes')
+    campanhas = redis_client.get('campanhas')
 
-  # Simulando o envio de e-mails
-  for cliente in clientes:
-    for campanha in campanhas:
-      print(f'E-mail enviado para: {cliente["email"]} com a campanha {campanha["nome"]}')
+    if not clientes:
+        clientes = requests.get(CRM_API_URL + 'clientes').json()
+        redis_client.set('clientes', json.dumps(clientes), ex=300)  # Cache por 5 minutos
+    else:
+        clientes = json.loads(clientes)
+
+    if not campanhas:
+        campanhas = requests.get(CRM_API_URL + 'campanhas').json()
+        redis_client.set('campanhas', json.dumps(campanhas), ex=300)  # Cache por 5 minutos
+    else:
+        campanhas = json.loads(campanhas)
+
+    # Simulando o envio de e-mails
+    for cliente in clientes:
+        for campanha in campanhas:
+            print(f'E-mail enviado para: {cliente["email"]} com a campanha {campanha["nome"]}')
             
-    # Registrar no banco de dados os e-mails enviados
-      enviado = {
-          "email": cliente["email"],
-          "campanha": campanha["nome"],
-          "mensagem": f"Você está recebendo o e-mail da campanha: {campanha['nome']}.",
-          "status": "enviado"
-      }
-      enviados_collection.insert_one(enviado)
+            # Registrar no banco de dados os e-mails enviados
+            enviado = {
+                "email": cliente["email"],
+                "campanha": campanha["nome"],
+                "mensagem": f"Você está recebendo o e-mail da campanha: {campanha['nome']}.",
+                "status": "enviado"
+            }
+            enviados_collection.insert_one(enviado)
             
-  return "E-mails disparados com sucesso!"
+    return "E-mails disparados com sucesso!"
 
 if __name__ == '__main__':
-  app.run(host='0.0.0.0', port=5000)
+    app.run(host='0.0.0.0', port=5000)
