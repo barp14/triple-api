@@ -3,6 +3,8 @@ from http import HTTPStatus
 from pymongo import MongoClient
 from pymongo.errors import ConnectionFailure
 from bson import ObjectId
+import redis
+import json
 
 app = Flask(__name__)
 
@@ -10,6 +12,9 @@ client = MongoClient('mongodb+srv://dbuser:DzbX3NP6MySS4ubt@cluster0.8x86g.mongo
 db = client['ecommerce']  # Nome do banco de dados
 clientes_collection = db['clientes']  # Nome da coleção de clientes
 campanhas_collection = db['campanhas']  # Nome da coleção de campanhas
+
+# Configuração do Redis
+redis_client = redis.StrictRedis(host='localhost', port=6379, db=0, decode_responses=True)
 
 # Função para converter ObjectId para string para que o Python consiga serializar esse tipo para JSON.
 def serialize_objectid(obj):
@@ -28,16 +33,26 @@ except Exception as e:
 
 @app.route('/clientes', methods=['GET'])
 def buscar_clientes():
-    clientes = list(clientes_collection.find())  # Retorna todos os clientes com o campo '_id'
-    # Converter _id para string em todos os clientes
-    serialized_clientes = [{**cliente, '_id': serialize_objectid(cliente['_id'])} for cliente in clientes]
+    # Verificar cache no Redis
+    clientes = redis_client.get('clientes')
+    if not clientes:
+        clientes = list(clientes_collection.find())  # Retorna todos os clientes com o campo '_id'
+        serialized_clientes = [{**cliente, '_id': serialize_objectid(cliente['_id'])} for cliente in clientes]
+        redis_client.set('clientes', json.dumps(serialized_clientes), ex=300)  # Cache por 5 minutos
+    else:
+        serialized_clientes = json.loads(clientes)
     return jsonify(serialized_clientes), HTTPStatus.OK
 
 @app.route('/campanhas', methods=['GET'])
 def buscar_campanhas():
-    campanhas = list(campanhas_collection.find())  # Retorna todas as campanhas com o campo '_id'
-    # Converter _id para string em todas as campanhas
-    serialized_campanhas = [{**campanha, '_id': serialize_objectid(campanha['_id'])} for campanha in campanhas]
+    # Verificar cache no Redis
+    campanhas = redis_client.get('campanhas')
+    if not campanhas:
+        campanhas = list(campanhas_collection.find())  # Retorna todas as campanhas com o campo '_id'
+        serialized_campanhas = [{**campanha, '_id': serialize_objectid(campanha['_id'])} for campanha in campanhas]
+        redis_client.set('campanhas', json.dumps(serialized_campanhas), ex=300)  # Cache por 5 minutos
+    else:
+        serialized_campanhas = json.loads(campanhas)
     return jsonify(serialized_campanhas), HTTPStatus.OK
 
 @app.route('/clientes', methods=['POST'])
@@ -50,6 +65,7 @@ def criar_cliente():
         
         try:
             clientes_collection.insert_many(data)  # Inserir múltiplos clientes de uma vez
+            redis_client.delete('clientes')  # Limpar cache
             serialized_data = [dict(cliente, **{'_id': serialize_objectid(cliente['_id'])}) for cliente in data]
             return jsonify(serialized_data), HTTPStatus.CREATED
         except Exception as e:
@@ -60,6 +76,7 @@ def criar_cliente():
         
         try:
             cliente_inserido = clientes_collection.insert_one(data)  # Inserir um único cliente
+            redis_client.delete('clientes')  # Limpar cache
             serialized_data = dict(data, **{'_id': serialize_objectid(cliente_inserido.inserted_id)})
             return jsonify(serialized_data), HTTPStatus.CREATED
         except Exception as e:
@@ -75,6 +92,7 @@ def criar_campanha():
         
         try:
             campanhas_collection.insert_many(data)  # Inserir múltiplas campanhas
+            redis_client.delete('campanhas')  # Limpar cache
             serialized_data = [
                 {**campanha, '_id': serialize_objectid(campanha['_id'])} for campanha in data
             ]
@@ -90,6 +108,7 @@ def criar_campanha():
         }
         
         campanhas_collection.insert_one(nova_campanha)
+        redis_client.delete('campanhas')  # Limpar cache
         serialized_campanha = {**nova_campanha, '_id': serialize_objectid(nova_campanha['_id'])}
         return jsonify(serialized_campanha), HTTPStatus.CREATED
 
