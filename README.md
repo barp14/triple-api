@@ -10,12 +10,12 @@ docker run --name redis-container -d -p 6379:6379 redis
 
 ```bash
 cd crm-api
-python crm_api.py
+python crm.py
 ```
 
 ### 3. Rodar a API de E-mail
 
 ```bash
 cd api-email
-python email_api.py
+python api-email.py
 ```
