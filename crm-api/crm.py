@@ -8,12 +8,11 @@ import json
 
 app = Flask(__name__)
 
-client = MongoClient('mongodb+srv://dbuser:DzbX3NP6MySS4ubt@cluster0.8x86g.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0') # String de conexão
-db = client['ecommerce']  # Nome do banco de dados
-clientes_collection = db['clientes']  # Nome da coleção de clientes
-campanhas_collection = db['campanhas']  # Nome da coleção de campanhas
+client = MongoClient('mongodb+srv://dbuser:DzbX3NP6MySS4ubt@cluster0.8x86g.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0')
+db = client['ecommerce'] 
+clientes_collection = db['clientes'] 
+campanhas_collection = db['campanhas']
 
-# Configuração do Redis
 redis_client = redis.StrictRedis(host='localhost', port=6379, db=0, decode_responses=True)
 
 # Função para converter ObjectId para string para que o Python consiga serializar esse tipo para JSON.
@@ -36,7 +35,7 @@ def buscar_clientes():
     # Verificar cache no Redis
     clientes = redis_client.get('clientes')
     if not clientes:
-        clientes = list(clientes_collection.find())  # Retorna todos os clientes com o campo '_id'
+        clientes = list(clientes_collection.find())
         serialized_clientes = [{**cliente, '_id': serialize_objectid(cliente['_id'])} for cliente in clientes]
         redis_client.set('clientes', json.dumps(serialized_clientes), ex=300)  # Cache por 5 minutos
     else:
@@ -48,7 +47,7 @@ def buscar_campanhas():
     # Verificar cache no Redis
     campanhas = redis_client.get('campanhas')
     if not campanhas:
-        campanhas = list(campanhas_collection.find())  # Retorna todas as campanhas com o campo '_id'
+        campanhas = list(campanhas_collection.find()) 
         serialized_campanhas = [{**campanha, '_id': serialize_objectid(campanha['_id'])} for campanha in campanhas]
         redis_client.set('campanhas', json.dumps(serialized_campanhas), ex=300)  # Cache por 5 minutos
     else:

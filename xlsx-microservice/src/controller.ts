@@ -3,7 +3,7 @@ import { redisClient } from './redis.js';
 import { Request, Response } from 'express';
 import * as XLSX from 'xlsx';
 
-const EMAIL_API_URL = process.env.EMAIL_API_URL //'http://localhost:5001/disparar-email'; 
+const EMAIL_API_URL =  process.env.EMAIL_API_URL; //'http://localhost:5000/disparar-email'; 
 const CACHE_KEY = 'e-mail--cache';
 const CACHE_EXP = 60 * 1000; // 1 minute
 
@@ -24,6 +24,7 @@ class GenerateArchiveController {
         console.log('-----> Hit Cache');
         data = JSON.parse(cache);
       } else {
+        console.log('>> EMAIL_API_URL raw:', EMAIL_API_URL);
         console.log('-----> Miss Cache');
         const response = await axios.post(`${EMAIL_API_URL}`);
         data = response.data as EmailData[];
@@ -43,9 +44,11 @@ class GenerateArchiveController {
         .setHeader('Content-Length', xlsxBuffer.length);
 
       res.end(xlsxBuffer);
-    } catch (error) {
+    } catch (err: any) {
+      console.error('Erro ao chamar API de e-mail:', err.code, err.message, err.response?.status);
       res.status(500).json({ error: 'Erro ao realizar a requisição' });
     }
+    
   }
 }
 

@@ -1,9 +1,9 @@
 import axios from 'axios';
 import { redisClient } from './redis.js';
 import * as XLSX from 'xlsx';
-const EMAIL_API_URL = "http://localhost:5001/disparar-email";
+const EMAIL_API_URL = process.env.EMAIL_API_URL; //'http://localhost:5000/disparar-email'; 
 const CACHE_KEY = 'e-mail--cache';
-const CACHE_EXP = 60 * 1000;
+const CACHE_EXP = 60 * 1000; // 1 minute
 class GenerateArchiveController {
     constructor() {
         this.handle = async (req, res) => {
@@ -15,6 +15,7 @@ class GenerateArchiveController {
                     data = JSON.parse(cache);
                 }
                 else {
+                    console.log('>> EMAIL_API_URL raw:', EMAIL_API_URL);
                     console.log('-----> Miss Cache');
                     const response = await axios.post(`${EMAIL_API_URL}`);
                     data = response.data;
@@ -31,7 +32,8 @@ class GenerateArchiveController {
                     .setHeader('Content-Length', xlsxBuffer.length);
                 res.end(xlsxBuffer);
             }
-            catch (error) {
+            catch (err) {
+                console.error('Erro ao chamar API de e-mail:', err.code, err.message, err.response?.status);
                 res.status(500).json({ error: 'Erro ao realizar a requisição' });
             }
         };

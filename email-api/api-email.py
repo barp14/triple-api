@@ -6,20 +6,17 @@ import json
 
 app = Flask(__name__)
 
-# URL da API de CRM
 CRM_API_URL = 'http://localhost:3000/'
 
-# Configuração do MongoDB
 client = MongoClient('mongodb+srv://dbuser:DzbX3NP6MySS4ubt@cluster0.8x86g.mongodb.net/?retryWrites=true&w=majority')
-db = client['ecommerce']  # Nome do banco de dados
-enviados_collection = db['enviados']  # Coleção de e-mails enviados
+db = client['ecommerce']
+enviados_collection = db['enviados'] 
 
 # Configuração do Redis
 redis_client = redis.StrictRedis(host='localhost', port=6379, db=0, decode_responses=True)
 
 @app.route('/disparar-email', methods=['POST'])
 def disparar_email():
-	# Consumindo dados de clientes e campanhas com cache
 	clientes = redis_client.get('clientes')
 	campanhas = redis_client.get('campanhas')
 
@@ -35,10 +32,8 @@ def disparar_email():
 	else:
 			campanhas = json.loads(campanhas)
 
-	# Apaga registros antigos da coleção "enviados" (opcional, dependendo da regra de negócio)
-	enviados_collection.delete_many({})
+	enviados_collection.delete_many({}) # Deleta tudo que já foi enviado antes de enviar novamente para não sobrecarregar o banco de dados
 
-	# Simulando o envio de e-mails e salvando
 	for cliente in clientes:
 			for campanha in campanhas:
 					enviado = {
@@ -49,7 +44,6 @@ def disparar_email():
 					}
 					enviados_collection.insert_one(enviado)
 
-	# Buscar tudo que foi persistido e devolver como resposta
 	enviados = list(enviados_collection.find({}, {"_id": 0}))  # Ignora o _id para facilitar o JSON
 
 	return jsonify(enviados), 200
