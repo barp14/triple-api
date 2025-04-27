@@ -24,7 +24,6 @@ class GenerateArchiveController {
         console.log('-----> Hit Cache');
         data = JSON.parse(cache);
       } else {
-        console.log('>> EMAIL_API_URL raw:', EMAIL_API_URL);
         console.log('-----> Miss Cache');
         const response = await axios.post(`${EMAIL_API_URL}`);
         data = response.data as EmailData[];
@@ -44,11 +43,9 @@ class GenerateArchiveController {
         .setHeader('Content-Length', xlsxBuffer.length);
 
       res.end(xlsxBuffer);
-    } catch (err: any) {
-      console.error('Erro ao chamar API de e-mail:', err.code, err.message, err.response?.status);
+    } catch (err: unknown) {
       res.status(500).json({ error: 'Erro ao realizar a requisição' });
     }
-    
   }
 }
 
