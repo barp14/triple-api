@@ -1,6 +1,6 @@
 ## 📂 Estrutura de diretórios
 
-- **TRIPLE-API/**
+- **triple-api/**
   - **python-apis/**
     - `api-crm.py`
     - `api-email.py`
