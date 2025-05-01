@@ -1,0 +1,8 @@
+__pycache__/
+*.py[cod]
+*$py.class
+**/node_modules/
+
+# __pycache__/ — ignora toda pasta de cache do Python.
+# *.py[cod] — ignora arquivos .pyc, .pyo e .pyd.
+# *$py.class — ignora arquivos gerados em ambientes Jython.

@@ -1,10 +1,11 @@
 ## 📂 Estrutura de diretórios
 
 - **TRIPLE-API/**
-  - **crm-api/**
-    - `crm.py`
-  - **email-api/**
+  - **python-apis/**
+    - `api-crm.py`
     - `api-email.py`
+    - `cache.py`
+    - `database.py`
   - **xlsx-microservice/**
     - **src/**
         - `controller.ts`
@@ -19,38 +20,38 @@
 
 ## 🛠️ Como Rodar a Aplicação
 
-### 1. Na pasta 'triple-api' importar as dependências do Python
-
-```bash
-pip install flask pymongo redis
-```
-
-### 2. Na pasta 'xlsx-microservice' instalar as dependências do Node
-
-```bash
-npm i
-```
-
-### 3. Criar o Redis com Docker
+### 1. Criar o Redis com Docker
 
 ```bash
 docker run --name redis-container -d -p 6379:6379 redis
 ```
 
+### 2. Na pasta 'python-apis' importar as dependências do Python
+
+```bash
+pip install flask pymongo redis
+```
+
+### 3. Na pasta 'xlsx-microservice' instalar as dependências do Node
+
+```bash
+npm i
+```
+
 ### 4. Rodar a API CRM
 
 ```bash
-cd crm-api
-python crm.py
+cd python-apis
+python api-crm.py
 ```
 
 ### 5. Rodar a API de E-mail
 
 ```bash
-cd api-email
+cd python-apis
 python api-email.py
-
 ```
+
 ### 6. Rodar a API de E-mail
 
 ```bash
