@@ -29,7 +29,7 @@ docker run --name redis-container -d -p 6379:6379 redis
 ### 2. Na pasta 'python-apis' importar as dependências do Python
 
 ```bash
-pip install flask pymongo redis
+pip install flask pymongo redis flask-cors
 ```
 
 ### 3. Na pasta 'xlsx-microservice' instalar as dependências do Node
@@ -38,25 +38,33 @@ pip install flask pymongo redis
 npm i
 ```
 
-### 4. Rodar a API CRM
+### 4. Rodar a API CRM (localhost:3000)
 
 ```bash
 cd python-apis
 python api-crm.py
 ```
 
-### 5. Rodar a API de E-mail
+### 5. Rodar a API de E-mail (localhost:5000)
 
 ```bash
 cd python-apis
 python api-email.py
 ```
 
-### 6. Rodar a API de E-mail
+### 6. Rodar a API de E-mail (localhost:4000)
 
 ```bash
 cd xlsx-microservice
 npm run build
+npm start
+```
+
+
+### 7. Rodar o App React (localhost:7000)
+
+```bash
+cd frontend
 npm start
 ```
 
