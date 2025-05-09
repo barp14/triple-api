@@ -84,7 +84,29 @@ function Dashboard() {
       setEnvioStatus('Erro ao disparar e-mail.');
     }
   };
-  
+
+const generateArchive = async () => {
+  try {
+    const response = await axios.get('http://localhost:4000/generate-archive', {
+      responseType: 'blob',  // Garantindo que a resposta seja tratada como 'blob' (arquivo binário)
+    });
+
+    // Criar uma URL temporária para o arquivo
+    const url = window.URL.createObjectURL(new Blob([response.data]));
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', 'planilha.xlsx');  // Nome do arquivo para download
+    document.body.appendChild(link);
+    link.click();  // Simula o clique para iniciar o download
+    link.parentNode.removeChild(link);  // Remove o link temporário após o download
+
+    // Liberar o objeto URL após o uso
+    window.URL.revokeObjectURL(url);
+  } catch (error) {
+    console.error('Erro ao gerar o arquivo:', error);
+  }
+};
+
   // Chama as funções dependendo da tab ativa
   useEffect(() => {
     if (value === 0) {
@@ -187,14 +209,19 @@ function Dashboard() {
               onChange={(e) => setCampanhaTag(e.target.value)}
               sx={{ marginBottom: 2 }}
             />
-            <Button variant="contained" color="primary" onClick={dispararEmailByTag}>
-              Enviar E-mails
-            </Button>
-            {envioStatus && (
-              <Typography variant="body2" color="textSecondary" sx={{ marginTop: 2 }}>
-                {envioStatus}
-              </Typography>
-            )}
+            <div className='buttons-container'> 
+              <Button variant="contained" color="primary" onClick={dispararEmailByTag}>
+                Enviar E-mails
+              </Button>
+              {envioStatus && (
+                <Typography variant="body2" color="textSecondary" sx={{ marginTop: 2 }}>
+                  {envioStatus}
+                </Typography>
+              )}
+              <Button variant="outlined" color="primary" onClick={generateArchive}>
+                Gerar Arquivo
+              </Button>
+            </div>
           </Box>
         )}
 

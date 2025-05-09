@@ -8,9 +8,9 @@ import { NextFunction, Request, Response } from 'express';
 const app = express()
 const HOST = 4000
 
+app.use(cors())
 app.use(express.json())
 app.use(router)
-app.use(cors())
 
 app.use(
   (
