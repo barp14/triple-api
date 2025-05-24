@@ -2,6 +2,7 @@ __pycache__/
 *.py[cod]
 *$py.class
 **/node_modules/
+.env
 
 # __pycache__/ — ignora toda pasta de cache do Python.
 # *.py[cod] — ignora arquivos .pyc, .pyo e .pyd.
